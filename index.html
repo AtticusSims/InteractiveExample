@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Particle Gesture Artwork</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <video id="video" autoplay playsinline></video>
+
+  <!-- Main Menu -->
+  <div id="menu">
+    <h1>Particle Artwork</h1>
+    <p class="menu-subtitle">Interactive camera-driven particle experiences</p>
+    <div class="scene-cards">
+      <button class="scene-card" data-scene="hands">
+        <div class="scene-icon">✋</div>
+        <div class="scene-title">Hand Gestures</div>
+        <div class="scene-desc">Control particles with your hands. Pinch, explode, form hearts, and clap to bloom flowers.</div>
+      </button>
+      <button class="scene-card" data-scene="face">
+        <div class="scene-icon">👤</div>
+        <div class="scene-title">Face Particles</div>
+        <div class="scene-desc">A particle plane deforms to reveal the 3D shape of your face in real time.</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- In-scene back button -->
+  <button id="backBtn" class="back-btn hidden">← Menu</button>
+
+  <!-- Hand-debug HUD -->
+  <aside id="handDebugPanel" class="hand-debug hidden" aria-live="polite">
+    <div class="hand-debug-head">
+      <h2>Gesture Debug</h2>
+      <span id="debugFps">0 FPS</span>
+    </div>
+    <canvas id="handDebugCamera" width="360" height="220"></canvas>
+    <div class="hand-debug-controls">
+      <label><input type="checkbox" id="debugShowCamera" checked> Camera</label>
+      <label><input type="checkbox" id="debugShowLandmarks" checked> Landmarks</label>
+      <label><input type="checkbox" id="debugShowConnections" checked> Connections</label>
+    </div>
+    <div class="hand-debug-grid">
+      <div>Hands</div><div id="debugHandsCount">0</div>
+      <div>Latency</div><div id="debugLatency">-- ms</div>
+      <div>Heart</div><div id="debugHeartState">false</div>
+      <div>Clap</div><div id="debugClapState">false</div>
+    </div>
+    <pre id="debugHandA" class="hand-debug-line">H0: --</pre>
+    <pre id="debugHandB" class="hand-debug-line">H1: --</pre>
+    <pre id="debugGestureLine" class="hand-debug-line">gestures: --</pre>
+    <div class="hand-debug-events-wrap">
+      <div class="hand-debug-events-title">Events</div>
+      <pre id="debugEvents" class="hand-debug-events">waiting for frames...</pre>
+    </div>
+  </aside>
+
+  <!-- Face debug panel and visibility switch -->
+  <div id="debugPanelSwitch" class="debug-panel-switch hidden">
+    <label>
+      <input type="checkbox" id="debugPanelEnabled" checked>
+      Debug Panel
+    </label>
+  </div>
+  <aside id="debugPanel" class="debug-panel hidden" aria-live="polite">
+    <div class="debug-panel-head">
+      <h2>Face Debug</h2>
+    </div>
+    <canvas id="faceDebugCamera" width="360" height="220"></canvas>
+    <div class="debug-panel-mode">
+      <label for="faceSimMode">Simulation</label>
+      <select id="faceSimMode">
+        <option value="hybrid" selected>Hybrid Gather</option>
+        <option value="cloth">Cloth (Experimental)</option>
+        <option value="legacy">Legacy</option>
+      </select>
+    </div>
+    <div class="debug-panel-mode">
+      <label for="facePerfMode">Performance</label>
+      <select id="facePerfMode">
+        <option value="auto" selected>Auto</option>
+        <option value="quality">Quality</option>
+        <option value="balanced">Balanced</option>
+        <option value="fast">Fast</option>
+      </select>
+    </div>
+    <div class="debug-panel-controls">
+      <button class="debug-toggle active" data-layer="wireframe">Wireframe</button>
+      <button class="debug-toggle active" data-layer="landmarks">Landmarks</button>
+      <button class="debug-toggle active" data-layer="labels">Labels</button>
+      <button class="debug-toggle active" data-layer="camera">Camera</button>
+    </div>
+    <div class="debug-panel-overlay-controls">
+      <label><input type="checkbox" id="debugShowMask" checked> Mask</label>
+      <label><input type="checkbox" id="debugShowDensity" checked> Density</label>
+      <label><input type="checkbox" id="debugShowVectors"> Vectors</label>
+      <label><input type="checkbox" id="debugShowSaturation" checked> Saturation</label>
+    </div>
+    <pre id="faceDebugStats" class="face-debug-stats">mode=hybrid | update=0.0 ms | compression=0.000</pre>
+  </aside>
+
+  <!-- Status bar (shared) -->
+  <div id="status">
+    <span id="handStatus">Hand: --</span>
+    <span id="audioStatus">Audio: --</span>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+  <script src="app.js"></script>
+</body>
+</html>

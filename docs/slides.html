@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Particle Artwork - Slide Deck</title>
+  <meta name="description" content="Slide presentation for the Particle Artwork design rationale.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Sora:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./site.css">
+</head>
+<body class="noise-overlay">
+  <div class="slides-shell">
+    <div class="deck" id="deck">
+      <section class="slide active">
+        <div>
+          <p class="kicker">Slide 1</p>
+          <h2 class="gradient-title">Particle Artwork Tool</h2>
+          <p class="big-line">Interactive camera-driven particles for visual communication design.</p>
+          <p>This deck summarizes why the tool was made, how it supports design practice, and the major UI/UX decisions behind it.</p>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div>
+          <p class="kicker">Slide 2</p>
+          <h2>Why I Made This App</h2>
+          <ul>
+            <li>I wanted a digital mirror that feels expressive, not just decorative.</li>
+            <li>Movement becomes composition, turning users into active visual collaborators.</li>
+            <li>The project explores motion, emotion, and identity as design material.</li>
+            <li>It bridges performance-based interaction with communication design workflows.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div>
+          <p class="kicker">Slide 3</p>
+          <h2>How It Supports Visual Communication Design</h2>
+          <ul>
+            <li>Works as a motion sketchbook for rapid visual ideation.</li>
+            <li>Helps test symbolic interaction (example: heart gesture, heart particle form).</li>
+            <li>Prototypes embodied interfaces where body language is the input system.</li>
+            <li>Generates source material for posters, campaign visuals, and editorial experiments.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div>
+          <p class="kicker">Slide 4</p>
+          <h2>Design Thinking Process</h2>
+          <ul>
+            <li><strong>Intent and audience:</strong> playful experience for classmates and critique contexts.</li>
+            <li><strong>Interaction-first prototyping:</strong> validate gesture/face behavior before polish.</li>
+            <li><strong>Visual behavior tuning:</strong> refine glow, density, speed, and color for readability.</li>
+            <li><strong>Reflection and legibility:</strong> include debug layers to reveal system logic in critique.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div>
+          <p class="kicker">Slide 5</p>
+          <h2>Key UI/UX Decisions (1/2)</h2>
+          <ul>
+            <li><strong>Two-scene menu:</strong> hand vs face modes reduce startup complexity.</li>
+            <li><strong>Dark visual framing:</strong> high contrast keeps focus on particle behavior.</li>
+            <li><strong>Camera-hidden interaction:</strong> users see abstraction first, not literal camera feed.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div>
+          <p class="kicker">Slide 6</p>
+          <h2>Key UI/UX Decisions (2/2)</h2>
+          <ul>
+            <li><strong>Gesture-to-feedback mapping:</strong> pinch, clap, and heart each have clear outcomes.</li>
+            <li><strong>Integrated debug panels:</strong> supports transparency and design explanation.</li>
+            <li><strong>Status + back navigation:</strong> keeps orientation and reduces user friction.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div>
+          <p class="kicker">Slide 7</p>
+          <h2>Brief Development Note</h2>
+          <p>
+            The build process was iterative: prototype interactions, test with camera input, tune visual behavior,
+            then improve interface clarity. Technical systems are present, but the primary goal is design-led communication.
+          </p>
+          <p class="quote">Main takeaway: this is an interactive design tool first, and a technical demo second.</p>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div>
+          <p class="kicker">Slide 8</p>
+          <h2>Thank You</h2>
+          <p class="big-line">Questions, critique, and next-iteration feedback are welcome.</p>
+          <p>
+            Use this deck directly in browser presentation mode, or adapt each slide into your class template.
+          </p>
+        </div>
+      </section>
+
+      <div class="progress"><span id="progressBar"></span></div>
+    </div>
+
+    <div class="slide-controls">
+      <div>
+        <button class="nav-btn" id="prevBtn" type="button">Prev</button>
+        <button class="nav-btn" id="nextBtn" type="button">Next</button>
+      </div>
+      <div class="key-hint">Use Left/Right arrows or buttons</div>
+      <div class="pager" id="pager">1 / 8</div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const slides = Array.from(document.querySelectorAll(".slide"));
+      const pager = document.getElementById("pager");
+      const progressBar = document.getElementById("progressBar");
+      const prevBtn = document.getElementById("prevBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      let index = 0;
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function render() {
+        slides.forEach((slide, i) => {
+          slide.classList.toggle("active", i === index);
+        });
+        pager.textContent = (index + 1) + " / " + slides.length;
+        const pct = ((index + 1) / slides.length) * 100;
+        progressBar.style.width = pct + "%";
+      }
+
+      function goTo(nextIndex) {
+        index = clamp(nextIndex, 0, slides.length - 1);
+        render();
+      }
+
+      prevBtn.addEventListener("click", function () {
+        goTo(index - 1);
+      });
+
+      nextBtn.addEventListener("click", function () {
+        goTo(index + 1);
+      });
+
+      window.addEventListener("keydown", function (event) {
+        if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") {
+          event.preventDefault();
+          goTo(index + 1);
+        }
+        if (event.key === "ArrowLeft" || event.key === "PageUp") {
+          event.preventDefault();
+          goTo(index - 1);
+        }
+        if (event.key === "Home") {
+          event.preventDefault();
+          goTo(0);
+        }
+        if (event.key === "End") {
+          event.preventDefault();
+          goTo(slides.length - 1);
+        }
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>

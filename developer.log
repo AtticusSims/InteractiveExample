@@ -1,0 +1,120 @@
+[2026-03-10T00:00:00Z] [CREATE] [index.html]
+Description: Created main HTML page with canvas element, hidden video element for webcam feed, overlay UI with start button, and CDN script tags for MediaPipe Hands and Camera Utils.
+Changes: New file with full HTML structure.
+Tests: N/A
+Issues: None
+---
+[2026-03-10T00:00:01Z] [CREATE] [style.css]
+Description: Created stylesheet for full-screen dark canvas, hidden video element, centered overlay with start button, and bottom status bar.
+Changes: New file with complete styling.
+Tests: N/A
+Issues: None
+---
+[2026-03-10T00:00:02Z] [CREATE] [app.js]
+Description: Created main application script with Particle class, MediaPipe Hands integration for hand gesture tracking, Web Audio API integration for microphone-level analysis, and requestAnimationFrame render loop. Particles are attracted to hand landmark positions and react to audio RMS level (size, spawn rate, color).
+Changes: New file — Particle class, setupHandTracking(), setupAudio(), animate(), spawn logic.
+Tests: Pending manual browser test.
+Issues: None
+---
+[2026-03-10T09:03:00Z] [UPDATE] [index.html]
+Description: Restructured HTML to support multi-scene architecture. Replaced single overlay with a main menu showing two scene cards (Hand Gestures and Face Particles). Added back button, MediaPipe Face Mesh CDN script.
+Changes: Menu with scene-card buttons, back-btn element, face_mesh.js script tag.
+Tests: Browser verified — menu renders correctly with gradient title and two cards.
+Issues: None
+---
+[2026-03-10T09:03:01Z] [UPDATE] [style.css]
+Description: Added styles for main menu page (gradient title, scene cards with hover effects), back button with blur backdrop, and hidden state for status bar. Cards use rounded borders with subtle glow on hover.
+Changes: New rules for #menu, .scene-card, .back-btn, #status.hidden.
+Tests: Browser verified — layout centered, hover transitions smooth.
+Issues: None
+---
+[2026-03-10T09:03:02Z] [UPDATE] [app.js]
+Description: Refactored into scene-based architecture with two self-contained scene modules (HandScene and FaceScene) using IIFE pattern. Added navigation system (showMenu, startScene, stopCurrentScene). FaceScene uses MediaPipe Face Mesh to detect 468 face landmarks and spawns particles along face contours (oval, eyes, brows, lips, nose). Particles spring toward face landmark targets with damping, jitter, and audio reactivity. Shared utilities (sound effects, audio analysis) remain at top level.
+Changes: HandScene IIFE wrapping existing hand logic, FaceScene IIFE with FaceParticle class and face mesh tracking, navigation handlers, scene card click wiring, back button handler.
+Tests: Browser verified — menu loads on start, both scenes launch and display correctly, back button returns to menu, status bar toggles visibility.
+Issues: Camera not accessible in automated browser test (expected). Real camera required for face/hand detection.
+---
+[2026-03-10T09:10:00Z] [UPDATE] [app.js]
+Description: Rewrote FaceScene from contour-tracing particles to a displaced-plane architecture. A uniform grid of ~12,000 particles covers the viewport. When a face is detected via MediaPipe Face Mesh (468 landmarks with x,y,z), each grid particle finds its nearest landmark using a spatial hash. Particles within the influence radius get pulled toward the landmark position with quadratic falloff, and their size/brightness is driven by the landmark's normalised z-depth (nose=bright/large, ears=dim/small). Spring physics with damping animate the transitions. Includes a glow pass for high-depth particles and audio-reactive jitter.
+Changes: Replaced FaceScene IIFE entirely — GridParticle class (persistent, no decay), spatial hash (CELL=30px, 3-cell search radius), nearestLandmark(), buildGrid(), updateParticles(), drawParticles(), drawGlowPass(). Fixed TDZ error by using onResizeCallbacks array instead of direct FaceScene reference in resize(). Updated menu card description.
+Tests: Browser verified — grid renders as subtle dot plane, Face Mesh model loads (WebGL context created), back button and navigation work. Camera required for full displacement test.
+Issues: None
+---
+[2026-03-17T15:54:55.5442468+08:00] [UPDATE] [app.js,index.html,style.css]
+Description: Added a comprehensive hand-gesture debugging HUD with live camera preview, landmark/connection overlays, per-hand pinch metrics, clap/heart diagnostics, latency/FPS tracking, and event timeline to troubleshoot gesture recognition.
+Changes: Added `#handDebugPanel` structure and metrics fields in `index.html`; added full HUD styling in `style.css`; instrumented HandScene in `app.js` with frame timing, handedness+spread metrics, gesture-state telemetry, debug event logging, on-panel controls, and mirrored overlay rendering on `#handDebugCamera`.
+Tests: `node --check app.js` (pass). Cursor lints for `app.js`, `index.html`, `style.css` (no errors).
+Issues: None. Requires real webcam input for gesture validation.
+---
+[2026-03-17T15:58:09.1256563+08:00] [UPDATE] [app.js]
+Description: Fixed clap vs heart gesture conflict by prioritizing clap detection at close palm distances and adding stricter heart-shape gating to prevent clap poses from being interpreted as hearts.
+Changes: Reordered two-hand gesture arbitration to compute clap first; added heart suppression when palms are within clap proximity; added minimum vertical gap and minimum palm-distance constraints for heart activation; added debug event for "heart suppressed by clap proximity".
+Tests: `node --check app.js` (pass). Cursor lint on `app.js` (no errors).
+Issues: None.
+---
+[2026-03-17T16:02:31.3019049+08:00] [DEBUG] [app.js]
+Description: Monitored runtime console during live clap testing and found a freeze-causing exception in the hand tracking callback (`Cannot read properties of undefined (reading 'pinched')`), then hardened tracking logic.
+Changes: Wrapped `handsModel.onResults` body in try/catch to avoid hard crashes; clamped tracked hand count to available gesture state slots; added overflow-hand guard event; switched two-hand gesture branch to use bounded `trackedHands` value.
+Tests: `node --check app.js` (pass). Cursor lint on `app.js` (no errors). Browser console monitored on cache-busted URL (`/?v=20260317160153`) with no new `pinched` exceptions observed.
+Issues: None observed after patch; continue live verification with real camera input.
+---
+[2026-03-17T16:09:00+08:00] [UPDATE] [index.html,style.css,app.js]
+Description: Added a dedicated face debugging panel and moved the existing face debug layer toggles (wireframe, landmarks, labels, camera) into that panel. Added a separate debug-panel switch so users can hide/show the panel without leaving the scene.
+Changes: Replaced old `#debugToggles` container with `#debugPanel` and `#debugPanelSwitch` in `index.html`; introduced panel/switch styling in `style.css`; updated scene navigation and visibility logic in `app.js` (`syncFaceDebugPanelVisibility`) and wired `#debugPanelEnabled` checkbox to control panel visibility state.
+Tests: `node --check app.js` (pass). Manual behavior flow validated in code path: menu hides panel, face scene shows switch and conditionally shows panel, hands scene hides both.
+Issues: None.
+---
+[2026-03-17T16:16:00+08:00] [UPDATE] [index.html,style.css,app.js]
+Description: Moved the face camera preview into the face debug panel and redirected all face debug overlays (wireframe, landmarks, labels) to render on that panel camera view instead of the main scene canvas.
+Changes: Added `#faceDebugCamera` to `#debugPanel` in `index.html`; resized/styled the debug panel for embedded camera preview in `style.css`; added `faceDebugCamera`/`faceDebugCtx` wiring in `app.js`, replaced `drawDebugFace()` with panel-targeted `drawDebugFacePanel()` (including canvas resize/scaling and mirrored camera draw), and removed face overlay rendering from the main display path.
+Tests: `node --check app.js` (pass). Cursor lint on `app.js`, `index.html`, `style.css` (no errors).
+Issues: None.
+---
+[2026-03-17T16:20:00+08:00] [UPDATE] [app.js,style.css]
+Description: Moved the shared status text (Face/Hand + Audio) into the active debugging panel so status is no longer shown as a separate bottom overlay.
+Changes: Added `attachStatusBarToPanel()` in `app.js` and now re-parent `#status` into `#debugPanel` for face scene and `#handDebugPanel` for hands scene before scene start; updated `#status` styles in `style.css` from fixed bottom bar to in-panel inline status row.
+Tests: `node --check app.js` (pass). Cursor lint on `app.js` and `style.css` (no errors).
+Issues: None.
+---
+[2026-03-17T17:05:00+08:00] [UPDATE] [index.html,style.css,app.js]
+Description: Implemented the full Face Gather Simulation plan: multi-mode face solver pipeline with selectable simulation mode, density-weighted landmark attraction, face-mask boundary blending, deterministic contraction transport for edge replenishment, optional cloth-style constraints, and expanded face debug instrumentation.
+Changes: Added face simulation controls in `index.html` (`#faceSimMode`, mask/density/vector/saturation toggles, `#faceDebugStats`); extended debug panel styling in `style.css` for mode selector, overlay controls, and stats block; replaced FaceScene internals in `app.js` with pluggable solvers (`hybrid`, `cloth`, `legacy`), density/saturation arrays, occupancy pressure, signed-distance face mask blending, contracted virtual-grid mapping, mode reset behavior, and debug camera overlays/status metrics wiring.
+Tests: `node --check app.js` (pass). Cursor lints for `app.js`, `index.html`, `style.css` (no errors).
+Issues: None identified in static checks; visual tuning values (compression/spring/constraint constants) may need live webcam adjustment for preferred artistic feel.
+---
+[2026-03-17T17:16:00+08:00] [TUNE] [app.js]
+Description: Restored stronger face-displaced particle look in the new hybrid gather system so the visual punch more closely matches the earlier version.
+Changes: Increased hybrid compression/attraction gains; adjusted in/out spring+damping balance to favor face-region displacement; increased displacement target normalization and smoothing; reduced baseline grid brightness in face region; amplified displaced-particle radius/bloom/lightness; added a dedicated high-displacement bloom pass for clearer facial depth separation.
+Tests: `node --check app.js` (pass). Cursor lint on `app.js` (no errors).
+Issues: None.
+---
+[2026-03-17T17:24:00+08:00] [OPTIMIZE] [app.js]
+Description: Improved runtime performance of the face gather simulation while preserving the visual effect by reducing expensive per-frame work and adding adaptive rendering quality.
+Changes: Reduced virtual grid padding (`GRID_PAD_CELLS` 24→16); added near-face culling for saturation/target computations; throttled saturation and occupancy rebuild cadence; removed duplicate density rebuild in FaceMesh callback; added adaptive performance tiering from smoothed solver update time; reduced cloth constraint iterations in slower tiers; added stride-based particle sampling and conditional extra-bloom pass to lower draw cost under load.
+Tests: `node --check app.js` (pass). Cursor lint on `app.js` (no errors).
+Issues: None.
+---
+[2026-03-17T17:31:00+08:00] [UPDATE] [index.html,app.js]
+Description: Added a manual face-performance selector and increased gather priority for facial feature regions (eyes, eyebrows, nose, mouth) using wireframe landmark groups.
+Changes: Added `#facePerfMode` selector (`Auto`, `Quality`, `Balanced`, `Fast`) in face debug panel; wired mode changes into FaceScene via new `setPerfMode()` API; updated debug stats to display perf mode/level; introduced feature landmark sets for eyes/brows/nose/mouth and derived per-landmark feature weights; applied feature weights to density, saturation capacity, and attractor pull strength so key facial features gather particles more strongly.
+Tests: `node --check app.js` (pass). Cursor lints for `app.js` and `index.html` (no errors).
+Issues: None.
+---
+[2026-03-25T12:10:00+08:00] [DOCS] [DESIGN_ASPECTS.md]
+Description: Added a design-focused markdown document for class submission, explaining plausible project intent, visual communication use cases, design thinking process, and key UI/UX rationale for the particle interaction tool.
+Changes: Created `DESIGN_ASPECTS.md` with sections for motivation, design-process application, interaction/system design decisions, and brief development notes with emphasis on design outcomes.
+Tests: N/A (documentation-only change).
+Issues: None.
+---
+[2026-03-25T12:26:00+08:00] [CREATE] [docs/index.html,docs/slides.html,docs/site.css,README.md]
+Description: Built a GitHub Pages-ready presentation site from the design rationale, including a landing page and browser-based slide deck for class presentation.
+Changes: Added `docs/index.html` as public summary page, `docs/slides.html` with 8-slide keyboard-navigable deck and progress indicator, `docs/site.css` for shared visual system, and `README.md` with GitHub Pages deployment instructions using `/docs`.
+Tests: Static validation by code inspection; no runtime dependencies beyond browser support.
+Issues: None.
+---
+[2026-03-25T12:39:00+08:00] [EXPORT] [docs/print.html,docs/site.css,docs/Particle-Artwork-Deck.pdf,README.md,docs/index.html]
+Description: Added print-export workflow and generated a final PDF version of the slide deck for submission and sharing.
+Changes: Added `docs/print.html` for print-optimized slide rendering; extended `docs/site.css` with print media rules and page-break layout; exported `docs/Particle-Artwork-Deck.pdf` via headless Chrome; added PDF links in `README.md` and `docs/index.html`.
+Tests: Headless export command succeeded (`chrome --headless --print-to-pdf`), output file size `1691816` bytes.
+Issues: None.
+---
