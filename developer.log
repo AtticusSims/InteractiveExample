@@ -118,3 +118,9 @@ Changes: Added `docs/print.html` for print-optimized slide rendering; extended `
 Tests: Headless export command succeeded (`chrome --headless --print-to-pdf`), output file size `1691816` bytes.
 Issues: None.
 ---
+[2026-03-25T12:54:00+08:00] [UPDATE] [docs/index.html,docs/slides.html,docs/print.html,docs/site.css,docs/assets/*,docs/Particle-Artwork-Deck.pdf]
+Description: Redesigned homepage and slide deck for stronger visual hierarchy and clarity, integrated live app screenshots, increased typography scale, and re-exported the PDF deck.
+Changes: Captured new app screenshots from live scenes (menu, hand debug view, face debug views) and stored under `docs/assets/`; rebuilt `docs/index.html` with hero image and visual gallery; rebuilt `docs/slides.html` and `docs/print.html` with image-rich slide layouts and larger text; updated `docs/site.css` to support clearer spacing/typography and new media components; regenerated `docs/Particle-Artwork-Deck.pdf`.
+Tests: Browser verification on local server (`/docs/index.html`, `/docs/slides.html`) with visual screenshots; `ReadLints` clean for updated files; headless PDF export completed, resulting file size `10184699` bytes.
+Issues: None.
+---
